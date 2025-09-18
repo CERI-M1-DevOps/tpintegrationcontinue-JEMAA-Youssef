@@ -1,12 +1,16 @@
 name: Java CI with Maven - Test and package
-
 on:
+  push:
   pull_request:
     branches: [ "main" ]
 
 jobs:
-  build:
+  quality:
     runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -16,10 +20,7 @@ jobs:
         with:
           distribution: 'corretto'
           java-version: '21'
-
-      - name: Build, test & Sonar
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run:
-          mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+      - name: Verify & Sonar analysis
+        shell: bash
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
           -Dsonar.projectKey=$(echo ${{ github.repository }} | sed 's-/-_-')
